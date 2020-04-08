@@ -14,6 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readr)
 library(tidyr)
 library(dplyr)
+library(ggplot2)
+library(car)
 wc <- read_csv("../data/craftbeer_wc.csv")
 
 
@@ -68,26 +70,36 @@ myfun <- function(x) {
 }
 
 summary(wc$adj_payroll)
+
 wc3 <- wc %>% 
   mutate(size = ifelse(adj_payroll < 100000, 1, 
                        ifelse(adj_payroll < 1000000, 2, 3))) 
+
+ggplot(data = wc3, aes(x = size, y = Claim_Count)) +
+  geom_smooth(method = "glm",
+              method.args = list(family = binomial))
+
+
 wc4 <- wc3 %>% 
   group_by(size, year) %>% 
-  summarize(total = n())
+  summarize(total_claims = n())
 
-library(ggplot2)
-ggplot() +
-  geom_line(data = wc2, aes(x = year, y = adj_payroll, colour = Policy_Dim_Key))
-write.csv(wc2, 'group_by(Policy_Dim_Key).csv')
+ggplot(data = wc4, aes(x = size, y = total_claims)) +
+  geom_smooth(method = "glm",
+              method.args = list(family = poisson))
+
+
 ```
 
 
 ```{r Testing out original data}
 # Trying out some other models using the original dataset.
-Model1 <- glm(Claim_Count ~ adj_payroll + Policy_Dim_Key + 
-                adj_payroll*Policy_Dim_Key, family = binomial, data = wc)
+Model1 <- glm(Claim_Count ~ adj_payroll, family = binomial, data = wc)
 summary(Model1)
 Anova(Model1)
+
+Model2 <- glm(Claim_Count ~ adj_payroll + Policy_Dim_Key + 
+                adj_payroll*Policy_Dim_Key, family = binomial, data = wc)
 
 # Creating a TempData set to plot Model1
 TempData <- data.frame(adj_payroll = seq(from = 0, to = 30000000, by = 20000))
