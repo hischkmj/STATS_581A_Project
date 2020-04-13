@@ -1,6 +1,6 @@
 ---
 title: "Workers' Compensation"
-author: "Molly Hischke"
+author: "Molly Hischke & Kyle Hancock"
 date: "3/13/2020"
 output: html_document
 ---
@@ -8,7 +8,17 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+# Introduction (4 pts - Kyle)
 
+- Background
+- Identify research question(s)
+- State response and predictor variables
+- Identify each variable as continuous or categorical (with levels)
+- Identify observational/experimental units and number of observations
+- Further details of design
+
+
+# Summary statistics and/or graphics (4 pts - Kyle)
 
 ```{r Load & Clean Data}
 library(readr)
@@ -18,7 +28,7 @@ library(ggplot2)
 library(car)
 wc <- read_csv("../data/craftbeer_wc.csv")
 
-
+## Adding column for number of years a brewery had a policy with insurance comp
 policy_years <- wc %>% 
   group_by(Policy_Dim_Key, year) %>% 
   summarize(total_claims = n()) %>% 
@@ -28,33 +38,44 @@ policy_years <- wc %>%
   ungroup()
 
 
+## CLEANED DATAFRAME - USE THIS ONE FOR SUMMARY GRAPHICS & MODELING ##
 wc2 <- wc %>% 
   group_by(Policy_Dim_Key, adj_payroll) %>% 
   summarize(total_claims = sum(Claim_Count)) %>% 
   mutate(claim_filed = ifelse(total_claims == 0, 0, 1)) %>% 
   ungroup() %>% 
   full_join(policy_years)
+
 ```
 
 
-```{r Project Proposal Code}
-CountModel1 <- glm(total_claims ~ adj_payroll + Policy_Dim_Key + adj_payroll*Policy_Dim_Key, 
-                   family = poisson(link = "log"), data = wc2)
+```{r Binomial Regression}
+# Model 1 - Binomial Logistic Regression
+CountModel1 <- glm(claim_filed ~ adj_payroll,
+                   family = binomial, data = wc2)
 
 summary(CountModel1)
+Anova(CountModel1)
+
+ggplot(data = wc2, aes(x = adj_payroll, y = claim_filed)) +
+  geom_smooth(method = "glm",
+              method.args = list(family = binomial))
+```
+
+
+```{r Poisson Regression}
+# Model 2 - Poisson Regression
+CountModel2 <- glm(total_claims ~ adj_payroll + , 
+                   family = poisson(link = "log"), data = wc2)
+
+summary(CountModel2)
+Anova(CountModel2)
+
 
 ggplot(data = wc2, aes(x = adj_payroll, y = total_claims)) +
   geom_smooth(method = "glm",
               method.args = list(family = poisson))
 
-CountModel2 <- glm(claim_filed ~ adj_payroll,
-                   family = binomial, data = wc2)
-
-summary(CountModel2)
-Anova(CountModel2)
-ggplot(data = wc2, aes(x = adj_payroll, y = claim_filed)) +
-  geom_smooth(method = "glm",
-              method.args = list(family = binomial))
 ```
 
 
@@ -71,6 +92,7 @@ myfun <- function(x) {
 
 summary(wc$adj_payroll)
 
+## Binomial Regression w/ payroll categories
 wc3 <- wc %>% 
   mutate(size = ifelse(adj_payroll < 100000, 1, 
                        ifelse(adj_payroll < 1000000, 2, 3))) 
@@ -80,6 +102,7 @@ ggplot(data = wc3, aes(x = size, y = Claim_Count)) +
               method.args = list(family = binomial))
 
 
+## Poisson Regression w/ categories
 wc4 <- wc3 %>% 
   group_by(size, year) %>% 
   summarize(total_claims = n())
@@ -113,22 +136,5 @@ ggplot(data = wc, aes(x = adj_payroll, y = Claim_Count)) +
 ```
 
 
-```{r More Models}
-
-# Trying out a bunch of different models to see what they look like.
-model1 <- lm(Claim_Count ~ adj_payroll, data = wc)
-plot(model1, which = 1)
-
-model2 <- glm(Claim_Count ~ adj_payroll, family = poisson(link = "log"), 
-              data = wc3)
-
-model3 <- glm(total ~ adj_payroll, family = poisson(link = "log"), 
-              data = wc4)
-
-library(car)
-summary(model2)
-Anova(model2)
-plot(residuals(model3, type = "pearson") ~ fitted(model3))
-```
 
 
