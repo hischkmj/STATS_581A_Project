@@ -48,7 +48,11 @@ wc2 <- wc %>%
 
 ```
 
+```{r Summary Statistics & Graphics}
 
+```
+
+# Analysis (6 pts - Molly)
 ```{r Binomial Regression}
 # Model 1 - Binomial Logistic Regression
 CountModel1 <- glm(claim_filed ~ adj_payroll,
@@ -61,7 +65,6 @@ ggplot(data = wc2, aes(x = adj_payroll, y = claim_filed)) +
   geom_smooth(method = "glm",
               method.args = list(family = binomial))
 ```
-
 
 ```{r Poisson Regression}
 # Model 2 - Poisson Regression
@@ -78,6 +81,18 @@ ggplot(data = wc2, aes(x = adj_payroll, y = total_claims)) +
 
 ```
 
+# Results and Conclusions (4 pts - Molly)
+
+- ANOVA style likelihood ratio tests and/or table of estimated coefficients
+- Other results as appropriate (ex: pairwise comparisons for categorical predictor)
+- Interpretation and discussion (even if nothing is "significant")
+- Respond to your research questions
+
+# R code appendix
+
+Add the code chunk from the HW assignments. 
+
+# Other Code - 
 
 ```{r Size as Categories}
 ## Separating into different 'groups' for size of brewery
