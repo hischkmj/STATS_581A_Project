@@ -68,7 +68,7 @@ ggplot(data = wc2, aes(x = adj_payroll, y = claim_filed)) +
 
 ```{r Poisson Regression}
 # Model 2 - Poisson Regression
-CountModel2 <- glm(total_claims ~ adj_payroll + , 
+CountModel2 <- glm(total_claims ~ adj_payroll, 
                    family = poisson(link = "log"), data = wc2)
 
 summary(CountModel2)
