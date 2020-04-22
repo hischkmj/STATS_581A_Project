@@ -26,6 +26,7 @@ library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(car)
+library(emmeans)
 wc <- read_csv("../data/craftbeer_wc.csv")
 
 ## Adding column for number of years a brewery had a policy with insurance comp
@@ -44,7 +45,8 @@ wc2 <- wc %>%
   summarize(total_claims = sum(Claim_Count)) %>% 
   mutate(claim_filed = ifelse(total_claims == 0, 0, 1)) %>% 
   ungroup() %>% 
-  full_join(policy_years) 
+  full_join(policy_years) %>% 
+  mutate(Policy_Dim_Key = as.factor(Policy_Dim_Key))
 
 ```
 
@@ -55,29 +57,45 @@ wc2 <- wc %>%
 # Analysis (6 pts - Molly)
 ```{r Binomial Regression}
 # Model 1 - Binomial Logistic Regression
-CountModel1 <- glm(claim_filed ~ adj_payroll + years_with_policy,
+Model1 <- glm(claim_filed ~ adj_payroll + years_with_policy,
                    family = binomial, data = wc2)
 
-summary(CountModel1)
-Anova(CountModel1)
+summary(Model1)
+Anova(Model1)
 
 ggplot(data = wc2, aes(x = adj_payroll, y = claim_filed)) +
   geom_smooth(method = "glm",
               method.args = list(family = binomial))
 ```
+```{r Binary Response with Repeated Measures}
+library(geepack)
+Model2 <- geeglm(claim_filed ~ adj_payroll, id = Policy_Dim_Key,
+                         family = binomial(link = "logit"), 
+                         corstr = "exchangeable", data = wc3)
+summary(Model2)
+```
 
 ```{r Poisson Regression}
 # Model 2 - Poisson Regression
-CountModel2 <- glm(total_claims ~ adj_payroll + years_with_policy + adj_payroll*Policy_Dim_Key, 
+Model3 <- glm(total_claims ~ adj_payroll + years_with_policy, 
                    family = poisson(link = "log"), data = wc2)
 
-summary(CountModel2)
-Anova(CountModel2)
+summary(Model3)
+Anova(Model3)
 
 
 ggplot(data = wc2, aes(x = adj_payroll, y = total_claims)) +
   geom_smooth(method = "glm",
               method.args = list(family = poisson))
+
+```
+```{r Count Response with Repeated Measures}
+library(geepack)
+Model4 <- geeglm(claim_filed ~ adj_payroll, id = Policy_Dim_Key,
+                         family = poisson(link = "log"), 
+                         corstr = "exchangeable", data = wc2)
+summary(Model4)
+
 
 ```
 
