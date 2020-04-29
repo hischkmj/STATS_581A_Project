@@ -27,27 +27,10 @@ library(dplyr)
 library(ggplot2)
 library(car)
 library(emmeans)
-wc <- read_csv("../data/craftbeer_wc.csv")
+wc <- read_csv("../data/wc_data.csv")
 
-## Adding column for number of years a brewery had a policy with insurance comp
-policy_years <- wc %>% 
-  group_by(Policy_Dim_Key, year) %>% 
-  summarize(total_claims = n()) %>% 
-  ungroup() %>% 
-  group_by(Policy_Dim_Key) %>% 
-  summarize(years_with_policy = n()) %>% 
-  ungroup()
-
-
-## CLEANED DATAFRAME - USE THIS ONE FOR SUMMARY GRAPHICS & MODELING ##
-wc2 <- wc %>% 
-  group_by(Policy_Dim_Key, adj_payroll) %>% 
-  summarize(total_claims = sum(Claim_Count)) %>% 
-  mutate(claim_filed = ifelse(total_claims == 0, 0, 1)) %>% 
-  ungroup() %>% 
-  full_join(policy_years) %>% 
-  mutate(Policy_Dim_Key = as.factor(Policy_Dim_Key))
-
+wc <- wc %>% 
+  select(- X1)
 ```
 
 ```{r Summary Statistics & Graphics}
@@ -58,12 +41,12 @@ wc2 <- wc %>%
 ```{r Binomial Regression}
 # Model 1 - Binomial Logistic Regression
 Model1 <- glm(claim_filed ~ adj_payroll + years_with_policy,
-                   family = binomial, data = wc2)
+                   family = binomial, data = wc)
 
 summary(Model1)
 Anova(Model1)
 
-ggplot(data = wc2, aes(x = adj_payroll, y = claim_filed)) +
+ggplot(data = wc, aes(x = adj_payroll, y = claim_filed)) +
   geom_smooth(method = "glm",
               method.args = list(family = binomial))
 ```
@@ -71,20 +54,20 @@ ggplot(data = wc2, aes(x = adj_payroll, y = claim_filed)) +
 library(geepack)
 Model2 <- geeglm(claim_filed ~ adj_payroll, id = Policy_Dim_Key,
                          family = binomial(link = "logit"), 
-                         corstr = "exchangeable", data = wc3)
+                         corstr = "exchangeable", data = wc)
 summary(Model2)
 ```
 
 ```{r Poisson Regression}
 # Model 2 - Poisson Regression
 Model3 <- glm(total_claims ~ adj_payroll + years_with_policy, 
-                   family = poisson(link = "log"), data = wc2)
+                   family = poisson(link = "log"), data = wc)
 
 summary(Model3)
 Anova(Model3)
 
 
-ggplot(data = wc2, aes(x = adj_payroll, y = total_claims)) +
+ggplot(data = wc, aes(x = adj_payroll, y = total_claims)) +
   geom_smooth(method = "glm",
               method.args = list(family = poisson))
 
@@ -93,7 +76,7 @@ ggplot(data = wc2, aes(x = adj_payroll, y = total_claims)) +
 library(geepack)
 Model4 <- geeglm(claim_filed ~ adj_payroll, id = Policy_Dim_Key,
                          family = poisson(link = "log"), 
-                         corstr = "exchangeable", data = wc2)
+                         corstr = "exchangeable", data = wc)
 summary(Model4)
 
 
