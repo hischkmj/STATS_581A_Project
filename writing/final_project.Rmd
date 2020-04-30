@@ -20,17 +20,23 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Summary statistics and/or graphics (4 pts - Kyle)
 
-```{r Load & Clean Data}
+```{r Load & Clean Data, warning=FALSE, message=FALSE}
 library(readr)
 library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(car)
 library(emmeans)
-wc <- read_csv("../data/wc_data.csv")
+wc <- read_csv("../data/craftbeer_wc.csv")
 
-wc <- wc %>% 
-  select(- X1)
+wc2 <- wc %>% 
+  group_by(Policy_Dim_Key, year) %>% 
+  summarize(avg_payroll = mean(adj_payroll),
+            total_claims = sum(Claim_Count)) %>% 
+  mutate(claim_filed = ifelse(total_claims == 0, 0, 1)) %>% 
+  ungroup() %>% 
+  mutate(Policy_Dim_Key = as.factor(Policy_Dim_Key),
+         year = as.factor(year))
 ```
 
 ```{r Summary Statistics & Graphics}
@@ -38,24 +44,6 @@ wc <- wc %>%
 ```
 
 # Analysis (6 pts - Molly)
-```{r Binomial Regression}
-# Model 1 - Binomial Logistic Regression
-Model1 <- glm(claim_filed ~ adj_payroll + years_with_policy,
-                   family = binomial, data = wc)
-summary(Model1)
-
-ggplot(data = wc, aes(x = adj_payroll, y = claim_filed)) +
-  geom_smooth(method = "glm",
-              method.args = list(family = binomial))
-```
-Based on the likelihood ratio test, we have  evidence of an association between adjusted payroll/years with policy and total number of claims. 
-```{r Binomial Regression LRT}
-Anova(Model1)
-
-
-exp(coef(Model1))
-
-```
 
 ```{r Binary Response with Repeated Measures}
 library(geepack)
@@ -65,31 +53,6 @@ Model2 <- geeglm(claim_filed ~ adj_payroll, id = Policy_Dim_Key,
 summary(Model2)
 ```
 
-```{r Poisson Regression}
-# Model 2 - Poisson Regression
-Model3 <- glm(total_claims ~ adj_payroll + years_with_policy, 
-                   family = poisson(link = "log"), data = wc)
-
-summary(Model3)
-
-
-
-ggplot(data = wc, aes(x = adj_payroll, y = total_claims)) +
-  geom_smooth(method = "glm",
-              method.args = list(family = poisson))
-```
-
-Based on the likelihood ratio tes, we have strong evidence of an association between adjusted payroll/years with policy and total number of claims. 
-Based on the DP value of 1.05 (close to 1) we do not have evidence of over-dispersion. 
-```{r Poisson Regression LRT & Diagnostics}
-## Anova likelihood ratio test
-Anova(Model3)
-
-DP <-  sum(residuals(Model3, type = "pearson")^2/Model3$df.residual)
-DP
-
-exp(coef(Model3))
-```
 
 ```{r Count Response with Repeated Measures}
 library(geepack)
@@ -112,63 +75,6 @@ summary(Model4)
 
 Add the code chunk from the HW assignments. 
 
-# Other Code - 
-
-```{r Size as Categories}
-## Separating into different 'groups' for size of brewery
-myfun <- function(x) {
-  if(x < 10000)
-    size = 1
-  else if(x >= 10000 && x < 500000)
-    size = 2
-  else if(x >= 500000)
-    size = 3
-}
-
-summary(wc$adj_payroll)
-
-## Binomial Regression w/ payroll categories
-wc3 <- wc %>% 
-  mutate(size = ifelse(adj_payroll < 100000, 1, 
-                       ifelse(adj_payroll < 1000000, 2, 3))) 
-
-ggplot(data = wc3, aes(x = size, y = Claim_Count)) +
-  geom_smooth(method = "glm",
-              method.args = list(family = binomial))
-
-
-## Poisson Regression w/ categories
-wc4 <- wc3 %>% 
-  group_by(size, year) %>% 
-  summarize(total_claims = n())
-
-ggplot(data = wc4, aes(x = size, y = total_claims)) +
-  geom_smooth(method = "glm",
-              method.args = list(family = poisson))
-
-
-```
-
-
-```{r Testing out original data}
-# Trying out some other models using the original dataset.
-Model1 <- glm(Claim_Count ~ adj_payroll, family = binomial, data = wc)
-summary(Model1)
-Anova(Model1)
-
-Model2 <- glm(Claim_Count ~ adj_payroll + Policy_Dim_Key + 
-                adj_payroll*Policy_Dim_Key, family = binomial, data = wc)
-
-# Creating a TempData set to plot Model1
-TempData <- data.frame(adj_payroll = seq(from = 0, to = 30000000, by = 20000))
-TempData$Mod1Pred <- predict(Model1, newdata = TempData, type = "response")
-ggplot(data = TempData, aes(x = adj_payroll, y = Mod1Pred)) +
-  geom_line(lwd = 2)
-
-ggplot(data = wc, aes(x = adj_payroll, y = Claim_Count)) +
-  geom_smooth(method = "glm",
-              method.args = list(family = binomial))
-```
 
 
 
