@@ -42,14 +42,21 @@ wc <- wc %>%
 # Model 1 - Binomial Logistic Regression
 Model1 <- glm(claim_filed ~ adj_payroll + years_with_policy,
                    family = binomial, data = wc)
-
 summary(Model1)
-Anova(Model1)
 
 ggplot(data = wc, aes(x = adj_payroll, y = claim_filed)) +
   geom_smooth(method = "glm",
               method.args = list(family = binomial))
 ```
+Based on the likelihood ratio test, we have  evidence of an association between adjusted payroll/years with policy and total number of claims. 
+```{r Binomial Regression LRT}
+Anova(Model1)
+
+
+exp(coef(Model1))
+
+```
+
 ```{r Binary Response with Repeated Measures}
 library(geepack)
 Model2 <- geeglm(claim_filed ~ adj_payroll, id = Policy_Dim_Key,
@@ -64,14 +71,26 @@ Model3 <- glm(total_claims ~ adj_payroll + years_with_policy,
                    family = poisson(link = "log"), data = wc)
 
 summary(Model3)
-Anova(Model3)
+
 
 
 ggplot(data = wc, aes(x = adj_payroll, y = total_claims)) +
   geom_smooth(method = "glm",
               method.args = list(family = poisson))
-
 ```
+
+Based on the likelihood ratio tes, we have strong evidence of an association between adjusted payroll/years with policy and total number of claims. 
+Based on the DP value of 1.05 (close to 1) we do not have evidence of over-dispersion. 
+```{r Poisson Regression LRT & Diagnostics}
+## Anova likelihood ratio test
+Anova(Model3)
+
+DP <-  sum(residuals(Model3, type = "pearson")^2/Model3$df.residual)
+DP
+
+exp(coef(Model3))
+```
+
 ```{r Count Response with Repeated Measures}
 library(geepack)
 Model4 <- geeglm(claim_filed ~ adj_payroll, id = Policy_Dim_Key,
