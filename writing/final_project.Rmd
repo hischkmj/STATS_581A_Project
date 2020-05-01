@@ -36,7 +36,9 @@ wc2 <- wc %>%
   mutate(claim_filed = ifelse(total_claims == 0, 0, 1)) %>% 
   ungroup() %>% 
   mutate(Policy_Dim_Key = as.factor(Policy_Dim_Key),
-         year = as.factor(year))
+         year = as.factor(year)) %>% 
+  rename(brewery = Policy_Dim_Key)
+
 ```
 
 ```{r Summary Statistics & Graphics}
@@ -47,20 +49,21 @@ wc2 <- wc %>%
 
 ```{r Binary Response with Repeated Measures}
 library(geepack)
-Model2 <- geeglm(claim_filed ~ adj_payroll, id = Policy_Dim_Key,
+Model1 <- geeglm(claim_filed ~ avg_payroll, id = brewery,
                          family = binomial(link = "logit"), 
-                         corstr = "exchangeable", data = wc)
-summary(Model2)
+                         corstr = "exchangeable", data = wc2)
+
+summary(Model1)
+
 ```
 
 
 ```{r Count Response with Repeated Measures}
 library(geepack)
-Model4 <- geeglm(claim_filed ~ adj_payroll, id = Policy_Dim_Key,
+Model2 <- geeglm(total_claims ~ avg_payroll, id = brewery,
                          family = poisson(link = "log"), 
-                         corstr = "exchangeable", data = wc)
-summary(Model4)
-
+                         corstr = "exchangeable", data = wc2)
+summary(Model2)
 
 ```
 
