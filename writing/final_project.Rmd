@@ -8,7 +8,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-#Retain (and do not edit) this code chunk!!!
+# Retain (and do not edit) this code chunk!!!
 library(knitr)
 knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(message = FALSE)
@@ -34,6 +34,7 @@ library(ggplot2)
 library(car)
 library(emmeans)
 library(knitr)
+library(geepack)
 
 ## Reading in raw data
 wc <- read_csv("../data/craftbeer_wc.csv")
@@ -76,28 +77,29 @@ kable(sample_n(data_table, 10, replace = TRUE),
 ```
 
 # Analysis (6 pts - Molly)
-Two analyses were conducted (both using Generalized Estimating Equations) with the response being binary and continuous (count data). 
+Two analyses were conducted (both using Generalized Estimating Equations) with the response being binary and continuous (count data).
+*Explain processing here*. 
 
 ## Binary Response with Repeated Measures (Model1)
 
 Model1 analysis was done using R and the geepack (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being if a brewery filed a claim (1 = yes, 0 = no). Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
-```{r Binary Response with Repeated Measures (Model1)}
-library(geepack)
+```{r Binary Response with Repeated Measures (Model1), warning = FALSE}
+# Binary Response with Repeated Measures
 Model1 <- geeglm(claim_filed ~ avg_payroll, id = brewery,
                          family = binomial(link = "logit"), 
                          corstr = "exchangeable", data = wc2)
 ```
 
 ## Count Response with Repeated Measures (Model2)
-Model1 analysis was done using R and the geepack (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being the number of times a  brewery filed a claim within a year. Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
+
+Model2 analysis was done using R and the geepack (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being the number of times a  brewery filed a claim within a year. Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
 
 ```{r Count Response with Repeated Measures (Model2)}
-library(geepack)
+# Count Response with Repeated Measures
 Model2 <- geeglm(total_claims ~ avg_payroll, id = brewery,
                          family = poisson(link = "log"), 
                          corstr = "exchangeable", data = wc2)
 ```
-
 
 # Results and Conclusions (4 pts - Molly)
 The average salary of a brewery worker in Colorado is $35,265 (ZipRecruiter, 2020) - therefore this was used to help interpret our analysis.
@@ -113,28 +115,37 @@ LIST OF THINGS TO INCLUDE:
 
 Based on Model1 (p = 0.039), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a multiplicative increase of 1.12 (12%) in the estimated odds of having (at least one) workers' compensation claim filed. 
 
+
 *Model1 Coefficients Table:*
 ```{r SUMMARY Model1}
+# Summary Table of Model1
 summary(Model1)
 
 ```
 
 
+*Model1 Odds Ratio:*
 ```{r OR Model1}
-Model1_OR = format(exp(35265 * 3.21e-06), digits = 16)
+# Model1 Odds Ratio
+format(exp(35265 * 3.21e-06), digits = 16)
 
 ```
 
 ## Count Response with Repeated Measures (Model2)
-Based on Model2 (p = 0.0157), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a *multiplicative* increase of 1.004 (0.4%) in predicted number of workers' compensation claim filed. 
+
+Based on Model2 (p = 0.0157), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a *multiplicative* increase of 1.004 (0.4%) in the predicted number of workers' compensation claim filed. 
+
 
 *Model2 Coefficients Table:*
 ```{r SUMMARY Model2}
+# Summary Table Model2
 summary(Model2)
 ```
 
 
+*Model2 Odds Ratio:*
 ```{r OR Model2}
+# Model2 Odds Ratio
 format(exp(35265* 1.240874e-07), digits = 6)
 ```
 
