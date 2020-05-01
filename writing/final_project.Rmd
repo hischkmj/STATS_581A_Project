@@ -16,12 +16,13 @@ knitr::opts_chunk$set(message = FALSE)
 
 # Introduction (4 pts - Kyle)
 
+
 - Background
 - Identify research question(s)
 - State response and predictor variables
 - Identify each variable as continuous or categorical (with levels)
 - Identify observational/experimental units and number of observations
-- Further details of design
+- Further details of design (make sure to include how we processed the data here)
 
 
 # Summary statistics and/or graphics (4 pts - Kyle)
@@ -40,7 +41,7 @@ library(geepack)
 wc <- read_csv("../data/craftbeer_wc.csv")
 
 
-## CLEANED DATA FRAME
+## Cleaning data, wc2 = final cleaned data frame to use for analysis
 wc2 <- wc %>% 
   group_by(Policy_Dim_Key, year) %>% 
   summarize(avg_payroll = mean(adj_payroll),
@@ -78,7 +79,7 @@ kable(sample_n(data_table, 10, replace = TRUE),
 
 # Analysis (6 pts - Molly)
 Two analyses were conducted (both using Generalized Estimating Equations) with the response being binary and continuous (count data).
-*Explain processing here*. 
+ 
 
 ## Binary Response with Repeated Measures (Model1)
 
