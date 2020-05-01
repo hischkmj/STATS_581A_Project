@@ -8,8 +8,12 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+#Retain (and do not edit) this code chunk!!!
+library(knitr)
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
 ```
+
 # Introduction (4 pts - Kyle)
 
 - Background
@@ -47,6 +51,9 @@ wc2 <- wc %>%
   rename(brewery = Policy_Dim_Key)
 ```
 
+```{r Summary of Data}
+summary(wc2)
+```
 
 ```{r Data Frame, warning=FALSE, message=FALSE}
 
@@ -58,7 +65,7 @@ data_table <- wc2 %>%
          'Total Claims' = total_claims,
          'Claim Filed?' = claim_filed)
 
-kable(sample_n(data_table, 15, replace = TRUE), 
+kable(sample_n(data_table, 10, replace = TRUE), 
       caption = "Sample of the brewery worker's compensation claim data.",
       align = "ccccc")
 
@@ -69,53 +76,87 @@ kable(sample_n(data_table, 15, replace = TRUE),
 ```
 
 # Analysis (6 pts - Molly)
+Two analyses were conducted (both using Generalized Estimating Equations) with the response being binary and continuous (count data). 
+
 ## Binary Response with Repeated Measures (Model1)
 
 Model1 analysis was done using R and the geepack (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being if a brewery filed a claim (1 = yes, 0 = no). Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
-```{r Binary Response with Repeated Measures}
+```{r Binary Response with Repeated Measures (Model1)}
 library(geepack)
 Model1 <- geeglm(claim_filed ~ avg_payroll, id = brewery,
                          family = binomial(link = "logit"), 
                          corstr = "exchangeable", data = wc2)
-
-summary(Model1) %>% 
-  coefficients
-
-format(exp(3.21e-06), digits = 16)
-emmeans(Model1, pairwise ~ avg_payroll, type = "response")
-
 ```
 
-
-```{r Citation Model1}
-citation("geepack")
-
-```
-
-## Count Response with Repeated Measures
+## Count Response with Repeated Measures (Model2)
 Model1 analysis was done using R and the geepack (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being the number of times a  brewery filed a claim within a year. Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
 
-```{r Count Response with Repeated Measures}
+```{r Count Response with Repeated Measures (Model2)}
 library(geepack)
 Model2 <- geeglm(total_claims ~ avg_payroll, id = brewery,
                          family = poisson(link = "log"), 
                          corstr = "exchangeable", data = wc2)
-summary(Model2) %>% 
-  coefficients ()
-
-
 ```
 
-# Results and Conclusions (4 pts - Molly)
 
-- ANOVA style likelihood ratio tests and/or table of estimated coefficients
-- Other results as appropriate (ex: pairwise comparisons for categorical predictor)
+# Results and Conclusions (4 pts - Molly)
+The average salary of a brewery worker in Colorado is $35,265 (ZipRecruiter, 2020) - therefore this was used to help interpret our analysis.
+
+LIST OF THINGS TO INCLUDE:
+
+- ANOVA style likelihood ratio tests and/or table of estimated coefficients (UNSURE IF WE CAN COMPUTE THESE)
+- Other results as appropriate (ex: pairwise comparisons for categorical predictor) (N/A)
 - Interpretation and discussion (even if nothing is "significant")
 - Respond to your research questions
 
+## Binary Response with Repeated Measures (Model1)
+
+Based on Model1 (p = 0.039), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a multiplicative increase of 1.12 (12%) in the estimated odds of having (at least one) workers' compensation claim filed. 
+
+*Model1 Coefficients Table:*
+```{r SUMMARY Model1}
+summary(Model1)
+
+```
+
+
+```{r OR Model1}
+Model1_OR = format(exp(35265 * 3.21e-06), digits = 16)
+
+```
+
+## Count Response with Repeated Measures (Model2)
+Based on Model2 (p = 0.0157), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a *multiplicative* increase of 1.004 (0.4%) in predicted number of workers' compensation claim filed. 
+
+*Model2 Coefficients Table:*
+```{r SUMMARY Model2}
+summary(Model2)
+```
+
+
+```{r OR Model2}
+format(exp(35265* 1.240874e-07), digits = 6)
+```
+
+# References
+
+```{r Citation Model1, include = FALSE}
+citation("geepack")
+
+```
+
+1. Højsgaard, S., Halekoh, U. & Yan J. (2006) The R Package geepack for Generalized Estimating Equations Journal of Statistical Software, 15, 2, pp1--11
+
+2. Yan, J. & Fine, J.P. (2004) Estimating Equations for Association Structures Statistics in Medicine, 23, pp859--880.
+
+3. Yan, J (2002) geepack: Yet Another Package for Generalized Estimating Equations R-News, 2/3, pp12-14.
+
+4. ZipRecruiter (2020). Brewery salary in Colorado. Retrieved from https://www.ziprecruiter.com/Salaries/How-Much-Does-a-Brewer-Make-a-Year--in-Colorado
+
 # R code appendix
 
-Add the code chunk from the HW assignments. 
+```{r show-code, ref.label = all_labels(), echo = TRUE, eval = FALSE}
+```
 
 
 
