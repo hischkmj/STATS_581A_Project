@@ -2,7 +2,9 @@
 title: "Workers' Compensation"
 author: "Molly Hischke & Kyle Hancock"
 date: "3/13/2020"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -27,8 +29,13 @@ library(dplyr)
 library(ggplot2)
 library(car)
 library(emmeans)
+library(knitr)
+
+## Reading in raw data
 wc <- read_csv("../data/craftbeer_wc.csv")
 
+
+## CLEANED DATA FRAME
 wc2 <- wc %>% 
   group_by(Policy_Dim_Key, year) %>% 
   summarize(avg_payroll = mean(adj_payroll),
@@ -38,6 +45,22 @@ wc2 <- wc %>%
   mutate(Policy_Dim_Key = as.factor(Policy_Dim_Key),
          year = as.factor(year)) %>% 
   rename(brewery = Policy_Dim_Key)
+```
+
+
+```{r Data Frame, warning=FALSE, message=FALSE}
+
+## Adds a table to present in the report. 
+data_table <- wc2 %>% 
+  rename(Brewery = brewery,
+         Year = year,
+         'Average Payroll' = avg_payroll,
+         'Total Claims' = total_claims,
+         'Claim Filed?' = claim_filed)
+
+kable(sample_n(data_table, 15, replace = TRUE), 
+      caption = "Sample of the brewery worker's compensation claim data.",
+      align = "ccccc")
 
 ```
 
@@ -46,24 +69,40 @@ wc2 <- wc %>%
 ```
 
 # Analysis (6 pts - Molly)
+## Binary Response with Repeated Measures (Model1)
 
+Model1 analysis was done using R and the geepack (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being if a brewery filed a claim (1 = yes, 0 = no). Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
 ```{r Binary Response with Repeated Measures}
 library(geepack)
 Model1 <- geeglm(claim_filed ~ avg_payroll, id = brewery,
                          family = binomial(link = "logit"), 
                          corstr = "exchangeable", data = wc2)
 
-summary(Model1)
+summary(Model1) %>% 
+  coefficients
+
+format(exp(3.21e-06), digits = 16)
+emmeans(Model1, pairwise ~ avg_payroll, type = "response")
 
 ```
 
+
+```{r Citation Model1}
+citation("geepack")
+
+```
+
+## Count Response with Repeated Measures
+Model1 analysis was done using R and the geepack (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being the number of times a  brewery filed a claim within a year. Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
 
 ```{r Count Response with Repeated Measures}
 library(geepack)
 Model2 <- geeglm(total_claims ~ avg_payroll, id = brewery,
                          family = poisson(link = "log"), 
                          corstr = "exchangeable", data = wc2)
-summary(Model2)
+summary(Model2) %>% 
+  coefficients ()
+
 
 ```
 
