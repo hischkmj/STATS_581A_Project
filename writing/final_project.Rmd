@@ -141,7 +141,6 @@ Based on Model2 (p = 0.0157), we find evidence of a difference between the odds 
 However, these results may underestimate the increase in the number of workers' compensation claims filed with an increase in brewery size. The National Brewers Association found that 17.8% of brewery employees who experienced an injury at work did not report it. Furthermore, 20% of those who reported an injury stated their injury was not documented by the organization (Embry & Stinchfield, 2020). Especially for smaller breweries with less employees, the organizations might not even know they need to report serious injuries (Pell, 2013). 
 
 
-
 *Model2 Coefficients Table:*
 ```{r SUMMARY Model2}
 # Summary Table Model2
@@ -156,7 +155,9 @@ summary(Model2) %>%
 format(exp(35265* 1.240874e-07), digits = 6)
 ```
 
-One of the limitations in this dataset is that there are only 130 breweries who had insurance policies with this particular insurance company. In 2013 (the start of the dataset), there were a total of XXX breweries in Colorado. In 2018 (the end of the dataset), there were a total of XXX breweries in Colorado. We do not expect this to change the overall results (that larger breweries have more workers' compensation claims). 
+One of the limitations in this dataset is that there are only 130 breweries who had insurance policies with this particular insurance company. In 2013 (the start of the dataset), there were a total of 175 breweries in Colorado. In 2018 (the end of the dataset), there were a total of 396 breweries in Colorado (Brewers Association, 2019). We do not expect this to change the overall results (that larger breweries have and have more workers' compensation claims).
+
+Overall, our results aligned with what we had predicted - larger breweries file or file more workers' compensation claims than smaller breweries. 
 
 # References
 
@@ -176,6 +177,8 @@ citation("geepack")
 5. Embry, E., & Stinchfield, M. (2020). Praise and paradox: What we learned from the brewers association safety and injury survey. Retrieved from https://www.brewersassociation.org/seminars/praise-and-paradox-what-we-learned-from-the-brewers-association-safety-and-injury-survey/
 
 6. Pell, M.B. (2013). Insight: Fast-growing U.S. craft brewers struggle with worker safety. Retrieved from https://www.reuters.com/article/us-brewing-safety-idUSBRE96B0MW20130712
+
+7. Brewers Association. (2019). State craft beer sales & production statistics, 2019. Retrieved from https://www.brewersassociation.org/statistics-and-data/state-craft-beer-stats/
 
 
 
