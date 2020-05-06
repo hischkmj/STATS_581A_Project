@@ -83,7 +83,7 @@ Two analyses were conducted (both using Generalized Estimating Equations) with t
 
 ## Binary Response with Repeated Measures (Model1)
 
-Model1 analysis was done using R and the geepack (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being if a brewery filed a claim (1 = yes, 0 = no). Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
+Model1 analysis was done using R and the geepack package (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being if a brewery filed a claim (1 = yes, 0 = no). Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
 ```{r Binary Response with Repeated Measures (Model1), warning = FALSE}
 # Binary Response with Repeated Measures
 Model1 <- geeglm(claim_filed ~ avg_payroll, id = brewery,
@@ -93,7 +93,7 @@ Model1 <- geeglm(claim_filed ~ avg_payroll, id = brewery,
 
 ## Count Response with Repeated Measures (Model2)
 
-Model2 analysis was done using R and the geepack (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being the number of times a  brewery filed a claim within a year. Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
+Model2 analysis was done using R and the geepack package (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being the number of times a  brewery filed a claim within a year. Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
 
 ```{r Count Response with Repeated Measures (Model2)}
 # Count Response with Repeated Measures
@@ -114,13 +114,15 @@ LIST OF THINGS TO INCLUDE:
 
 ## Binary Response with Repeated Measures (Model1)
 
-Based on Model1 (p = 0.039), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a multiplicative increase of 1.12 (12%) in the estimated odds of having (at least one) workers' compensation claim filed. 
+Based on Model1 (p = 0.039), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a multiplicative increase of 1.12 (12%) in the estimated odds of having (at least one) workers' compensation claim filed. The results we found were anticipated in that we assumed that as a craft brewery hires more staff and increases in size that there would also be an increase the odds of filing a workers' compensation claim (i.e. work-related injuries). Although part of the increase could be because smaller breweries may be less likely to file a workers' compensation claim. 
+
 
 
 *Model1 Coefficients Table:*
 ```{r SUMMARY Model1}
 # Summary Table of Model1
-summary(Model1)
+summary(Model1) %>% 
+  coefficients()
 
 ```
 
@@ -134,13 +136,17 @@ format(exp(35265 * 3.21e-06), digits = 16)
 
 ## Count Response with Repeated Measures (Model2)
 
-Based on Model2 (p = 0.0157), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a *multiplicative* increase of 1.004 (0.4%) in the predicted number of workers' compensation claim filed. 
+Based on Model2 (p = 0.0157), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a *multiplicative* increase of 1.004 (0.4%) in the predicted number of workers' compensation claims filed. 
+
+However, these results may underestimate the increase in the number of workers' compensation claims filed with an increase in brewery size. The National Brewers Association found that 17.8% of brewery employees who experienced an injury at work did not report it. Furthermore, 20% of those who reported an injury stated their injury was not documented by the organization (Embry & Stinchfield, 2020). Especially for smaller breweries with less employees, the organizations might not even know they need to report serious injuries (Pell, 2013). 
+
 
 
 *Model2 Coefficients Table:*
 ```{r SUMMARY Model2}
 # Summary Table Model2
-summary(Model2)
+summary(Model2) %>% 
+  coefficients()
 ```
 
 
@@ -149,6 +155,8 @@ summary(Model2)
 # Model2 Odds Ratio
 format(exp(35265* 1.240874e-07), digits = 6)
 ```
+
+One of the limitations in this dataset is that there are only 130 breweries who had insurance policies with this particular insurance company. In 2013 (the start of the dataset), there were a total of XXX breweries in Colorado. In 2018 (the end of the dataset), there were a total of XXX breweries in Colorado. We do not expect this to change the overall results (that larger breweries have more workers' compensation claims). 
 
 # References
 
@@ -164,6 +172,12 @@ citation("geepack")
 3. Yan, J (2002) geepack: Yet Another Package for Generalized Estimating Equations R-News, 2/3, pp12-14.
 
 4. ZipRecruiter (2020). Brewery salary in Colorado. Retrieved from https://www.ziprecruiter.com/Salaries/How-Much-Does-a-Brewer-Make-a-Year--in-Colorado
+
+5. Embry, E., & Stinchfield, M. (2020). Praise and paradox: What we learned from the brewers association safety and injury survey. Retrieved from https://www.brewersassociation.org/seminars/praise-and-paradox-what-we-learned-from-the-brewers-association-safety-and-injury-survey/
+
+6. Pell, M.B. (2013). Insight: Fast-growing U.S. craft brewers struggle with worker safety. Retrieved from https://www.reuters.com/article/us-brewing-safety-idUSBRE96B0MW20130712
+
+
 
 # R code appendix
 
