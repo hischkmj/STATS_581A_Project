@@ -162,6 +162,8 @@ Overall, our results aligned with what we had predicted - larger breweries file 
 # References
 
 ```{r Citation Model1, include = FALSE}
+
+# References 
 citation("geepack")
 
 ```
