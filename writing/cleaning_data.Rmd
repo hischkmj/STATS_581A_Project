@@ -1,0 +1,43 @@
+---
+title: "Cleaning Data"
+author: "Molly Hischke"
+date: "4/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Cleaning Data (to use for final project)
+
+```{r Load & Clean Data}
+library(readr)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(car)
+library(emmeans)
+wc <- read_csv("../data/craftbeer_wc.csv")
+
+## Adding column for number of years a brewery had a policy with insurance comp
+policy_years <- wc %>% 
+  group_by(Policy_Dim_Key, year) %>% 
+  summarize(total_claims = n()) %>% 
+  ungroup() %>% 
+  group_by(Policy_Dim_Key) %>% 
+  summarize(years_with_policy = n()) %>% 
+  ungroup()
+
+
+## CLEANED DATAFRAME - USE THIS ONE FOR SUMMARY GRAPHICS & MODELING ##
+wc2 <- wc %>% 
+  group_by(Policy_Dim_Key, adj_payroll) %>% 
+  summarize(total_claims = sum(Claim_Count)) %>% 
+  mutate(claim_filed = ifelse(total_claims == 0, 0, 1)) %>% 
+  ungroup() %>% 
+  full_join(policy_years) %>% 
+  mutate(Policy_Dim_Key = as.factor(Policy_Dim_Key))
+
+write.csv(wc2, "data/wc_data.csv")
+```

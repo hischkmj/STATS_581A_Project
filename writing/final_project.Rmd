@@ -1,134 +1,195 @@
 ---
 title: "Workers' Compensation"
-author: "Molly Hischke"
+author: "Molly Hischke & Kyle Hancock"
 date: "3/13/2020"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# Retain (and do not edit) this code chunk!!!
+library(knitr)
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
 ```
 
+# Introduction (4 pts - Kyle)
 
-```{r Load & Clean Data}
+
+- Background
+- Identify research question(s)
+- State response and predictor variables
+- Identify each variable as continuous or categorical (with levels)
+- Identify observational/experimental units and number of observations
+- Further details of design (make sure to include how we processed the data here)
+
+
+# Summary statistics and/or graphics (4 pts - Kyle)
+
+```{r Load & Clean Data, warning=FALSE, message=FALSE}
 library(readr)
 library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(car)
+library(emmeans)
+library(knitr)
+library(geepack)
+
+## Reading in raw data
 wc <- read_csv("../data/craftbeer_wc.csv")
 
 
-policy_years <- wc %>% 
-  group_by(Policy_Dim_Key, year) %>% 
-  summarize(total_claims = n()) %>% 
-  ungroup() %>% 
-  group_by(Policy_Dim_Key) %>% 
-  summarize(years_with_policy = n()) %>% 
-  ungroup()
-
-
+## Cleaning data, wc2 = final cleaned data frame to use for analysis
 wc2 <- wc %>% 
-  group_by(Policy_Dim_Key, adj_payroll) %>% 
-  summarize(total_claims = sum(Claim_Count)) %>% 
+  group_by(Policy_Dim_Key, year) %>% 
+  summarize(avg_payroll = mean(adj_payroll),
+            total_claims = sum(Claim_Count)) %>% 
   mutate(claim_filed = ifelse(total_claims == 0, 0, 1)) %>% 
   ungroup() %>% 
-  full_join(policy_years)
+  mutate(Policy_Dim_Key = as.factor(Policy_Dim_Key),
+         year = as.factor(year)) %>% 
+  rename(brewery = Policy_Dim_Key)
 ```
 
-
-```{r Project Proposal Code}
-CountModel1 <- glm(total_claims ~ adj_payroll + Policy_Dim_Key + adj_payroll*Policy_Dim_Key, 
-                   family = poisson(link = "log"), data = wc2)
-
-summary(CountModel1)
-
-ggplot(data = wc2, aes(x = adj_payroll, y = total_claims)) +
-  geom_smooth(method = "glm",
-              method.args = list(family = poisson))
-
-CountModel2 <- glm(claim_filed ~ adj_payroll,
-                   family = binomial, data = wc2)
-
-summary(CountModel2)
-Anova(CountModel2)
-ggplot(data = wc2, aes(x = adj_payroll, y = claim_filed)) +
-  geom_smooth(method = "glm",
-              method.args = list(family = binomial))
+```{r Summary of Data}
+summary(wc2)
 ```
 
+```{r Data Frame, warning=FALSE, message=FALSE}
 
-```{r Size as Categories}
-## Separating into different 'groups' for size of brewery
-myfun <- function(x) {
-  if(x < 10000)
-    size = 1
-  else if(x >= 10000 && x < 500000)
-    size = 2
-  else if(x >= 500000)
-    size = 3
-}
+## Adds a table to present in the report. 
+data_table <- wc2 %>% 
+  rename(Brewery = brewery,
+         Year = year,
+         'Average Payroll' = avg_payroll,
+         'Total Claims' = total_claims,
+         'Claim Filed?' = claim_filed)
 
-summary(wc$adj_payroll)
-
-wc3 <- wc %>% 
-  mutate(size = ifelse(adj_payroll < 100000, 1, 
-                       ifelse(adj_payroll < 1000000, 2, 3))) 
-
-ggplot(data = wc3, aes(x = size, y = Claim_Count)) +
-  geom_smooth(method = "glm",
-              method.args = list(family = binomial))
-
-
-wc4 <- wc3 %>% 
-  group_by(size, year) %>% 
-  summarize(total_claims = n())
-
-ggplot(data = wc4, aes(x = size, y = total_claims)) +
-  geom_smooth(method = "glm",
-              method.args = list(family = poisson))
-
+kable(sample_n(data_table, 10, replace = TRUE), 
+      caption = "Sample of the brewery worker's compensation claim data.",
+      align = "ccccc")
 
 ```
 
+```{r Summary Statistics & Graphics}
 
-```{r Testing out original data}
-# Trying out some other models using the original dataset.
-Model1 <- glm(Claim_Count ~ adj_payroll, family = binomial, data = wc)
-summary(Model1)
-Anova(Model1)
+```
 
-Model2 <- glm(Claim_Count ~ adj_payroll + Policy_Dim_Key + 
-                adj_payroll*Policy_Dim_Key, family = binomial, data = wc)
+# Analysis (6 pts - Molly)
+Two analyses were conducted (both using Generalized Estimating Equations) with the response being binary and continuous (count data).
+ 
 
-# Creating a TempData set to plot Model1
-TempData <- data.frame(adj_payroll = seq(from = 0, to = 30000000, by = 20000))
-TempData$Mod1Pred <- predict(Model1, newdata = TempData, type = "response")
-ggplot(data = TempData, aes(x = adj_payroll, y = Mod1Pred)) +
-  geom_line(lwd = 2)
+## Binary Response with Repeated Measures (Model1)
 
-ggplot(data = wc, aes(x = adj_payroll, y = Claim_Count)) +
-  geom_smooth(method = "glm",
-              method.args = list(family = binomial))
+Model1 analysis was done using R and the geepack package (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being if a brewery filed a claim (1 = yes, 0 = no). Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
+```{r Binary Response with Repeated Measures (Model1), warning = FALSE}
+# Binary Response with Repeated Measures
+Model1 <- geeglm(claim_filed ~ avg_payroll, id = brewery,
+                         family = binomial(link = "logit"), 
+                         corstr = "exchangeable", data = wc2)
+```
+
+## Count Response with Repeated Measures (Model2)
+
+Model2 analysis was done using R and the geepack package (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being the number of times a  brewery filed a claim within a year. Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
+
+```{r Count Response with Repeated Measures (Model2)}
+# Count Response with Repeated Measures
+Model2 <- geeglm(total_claims ~ avg_payroll, id = brewery,
+                         family = poisson(link = "log"), 
+                         corstr = "exchangeable", data = wc2)
+```
+
+# Results and Conclusions (4 pts - Molly)
+The average salary of a brewery worker in Colorado is $35,265 (ZipRecruiter, 2020) - therefore this was used to help interpret our analysis.
+
+LIST OF THINGS TO INCLUDE:
+
+- ANOVA style likelihood ratio tests and/or table of estimated coefficients (UNSURE IF WE CAN COMPUTE THESE)
+- Other results as appropriate (ex: pairwise comparisons for categorical predictor) (N/A)
+- Interpretation and discussion (even if nothing is "significant")
+- Respond to your research questions
+
+## Binary Response with Repeated Measures (Model1)
+
+Based on Model1 (p = 0.039), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a multiplicative increase of 1.12 (12%) in the estimated odds of having (at least one) workers' compensation claim filed. The results we found were anticipated in that we assumed that as a craft brewery hires more staff and increases in size that there would also be an increase the odds of filing a workers' compensation claim (i.e. work-related injuries). Although part of the increase could be because smaller breweries may be less likely to file a workers' compensation claim. 
+
+
+
+*Model1 Coefficients Table:*
+```{r SUMMARY Model1}
+# Summary Table of Model1
+summary(Model1) %>% 
+  coefficients()
+
 ```
 
 
-```{r More Models}
+*Model1 Odds Ratio:*
+```{r OR Model1}
+# Model1 Odds Ratio
+format(exp(35265 * 3.21e-06), digits = 16)
 
-# Trying out a bunch of different models to see what they look like.
-model1 <- lm(Claim_Count ~ adj_payroll, data = wc)
-plot(model1, which = 1)
-
-model2 <- glm(Claim_Count ~ adj_payroll, family = poisson(link = "log"), 
-              data = wc3)
-
-model3 <- glm(total ~ adj_payroll, family = poisson(link = "log"), 
-              data = wc4)
-
-library(car)
-summary(model2)
-Anova(model2)
-plot(residuals(model3, type = "pearson") ~ fitted(model3))
 ```
+
+## Count Response with Repeated Measures (Model2)
+
+Based on Model2 (p = 0.0157), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a *multiplicative* increase of 1.004 (0.4%) in the predicted number of workers' compensation claims filed. 
+
+However, these results may underestimate the increase in the number of workers' compensation claims filed with an increase in brewery size. The National Brewers Association found that 17.8% of brewery employees who experienced an injury at work did not report it. Furthermore, 20% of those who reported an injury stated their injury was not documented by the organization (Embry & Stinchfield, 2020). Especially for smaller breweries with less employees, the organizations might not even know they need to report serious injuries (Pell, 2013). 
+
+
+*Model2 Coefficients Table:*
+```{r SUMMARY Model2}
+# Summary Table Model2
+summary(Model2) %>% 
+  coefficients()
+```
+
+
+*Model2 Odds Ratio:*
+```{r OR Model2}
+# Model2 Odds Ratio
+format(exp(35265* 1.240874e-07), digits = 6)
+```
+
+One of the limitations in this dataset is that there are only 130 breweries who had insurance policies with this particular insurance company. In 2013 (the start of the dataset), there were a total of 175 breweries in Colorado. In 2018 (the end of the dataset), there were a total of 396 breweries in Colorado (Brewers Association, 2019). We do not expect this to change the overall results (that larger breweries have and have more workers' compensation claims).
+
+Overall, our results aligned with what we had predicted - larger breweries file or file more workers' compensation claims than smaller breweries. 
+
+# References
+
+```{r Citation Model1, include = FALSE}
+
+# References 
+citation("geepack")
+
+```
+
+1. Højsgaard, S., Halekoh, U. & Yan J. (2006) The R Package geepack for Generalized Estimating Equations Journal of Statistical Software, 15, 2, pp1--11
+
+2. Yan, J. & Fine, J.P. (2004) Estimating Equations for Association Structures Statistics in Medicine, 23, pp859--880.
+
+3. Yan, J (2002) geepack: Yet Another Package for Generalized Estimating Equations R-News, 2/3, pp12-14.
+
+4. ZipRecruiter (2020). Brewery salary in Colorado. Retrieved from https://www.ziprecruiter.com/Salaries/How-Much-Does-a-Brewer-Make-a-Year--in-Colorado
+
+5. Embry, E., & Stinchfield, M. (2020). Praise and paradox: What we learned from the brewers association safety and injury survey. Retrieved from https://www.brewersassociation.org/seminars/praise-and-paradox-what-we-learned-from-the-brewers-association-safety-and-injury-survey/
+
+6. Pell, M.B. (2013). Insight: Fast-growing U.S. craft brewers struggle with worker safety. Retrieved from https://www.reuters.com/article/us-brewing-safety-idUSBRE96B0MW20130712
+
+7. Brewers Association. (2019). State craft beer sales & production statistics, 2019. Retrieved from https://www.brewersassociation.org/statistics-and-data/state-craft-beer-stats/
+
+
+
+# R code appendix
+
+```{r show-code, ref.label = all_labels(), echo = TRUE, eval = FALSE}
+```
+
+
+
 
 
