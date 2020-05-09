@@ -75,6 +75,46 @@ kable(sample_n(data_table, 10, replace = TRUE),
 
 ```{r Summary Statistics & Graphics}
 
+#payroll stats
+payroll_stats <- summary(wc2$avg_payroll)
+payroll_stats
+
+#size categories based on quartile
+size_categories <- wc2 %>% 
+  mutate(size = cut(avg_payroll, breaks=c(-Inf, 71370, 143400, 307722, Inf), labels=c("small","medium","large","extra large")))
+
+SumStats <- size_categories %>% 
+             group_by(size) %>% 
+             summarize(n_breweries = n(),
+             prop_claim = sum(claim_filed/n_breweries))
+SumStats
+
+SumStats2 <- size_categories %>% 
+             group_by(size) %>% 
+             summarize(n_breweries = n(),
+             avg_claims = mean(total_claims))
+
+ggplot() +
+  geom_col(data = SumStats, aes(size, y = prop_claim)) +
+  labs(x = "Size of Brewery", y = "Proportions of Breweries With a Claim")
+ 
+ggplot() +
+  geom_col(data = SumStats2, aes(size, y = avg_claims)) +
+  labs(x = "Size of Brewery", y = "Average Number of Claims")
+
+ggplot() +
+  geom_point(data = wc2, aes(x = avg_payroll, y = total_claims))
+
+SumStats3 <- wc2 %>% 
+            group_by(year) %>%
+            summarise(n = n(),
+            Prop_Claim = sum(claim_filed)/n)
+
+SumStats4 <- wc2 %>% 
+            group_by(year) %>%
+            summarise(n = n(),
+            avg_claims = mean(total_claims))
+
 ```
 
 # Analysis (6 pts - Molly)
