@@ -16,11 +16,11 @@ knitr::opts_chunk$set(message = FALSE)
 
 # Introduction (4 pts - Kyle)
 
+The brewing industry has seen substantial growth in Colorado over the past several years, going from 126 craft breweries in 2011 to 425 in 2019. In 2019, the economic impact of the craft brewing industry was over $3 billion, ranking Colorado the highest per capita in the United States (Brewers Association, 2019). The growth of the brewing industry and its economic importance has prompted the recent creation of a regional emphasis program by Colorado OSHA in 2019. This program was created to help employers identify hazards, ensure OSHA compliance, and reduce risk through the implementation of controls (OSHA, 2019). In the regional emphasis program, confined space, falls, noise, repetitive motions, lifting, and chemical exposures are identified as some of the hazards in the industry. Specifically, craft breweries tend to be small operations that rely heavily on manual material handling which has been associated with low back injuries (Lavendar, 2012). Researchers in the occupational ergonomics and safety program at Colorado State University have also taken interest in the quickly evolving brewing industry. They want to understand how and why workers are injured in brewing and actions that can be taken to reduce risk. Workers compensation data has been obtained from one of the largest providers in the state of Colorado to look at these research questions. This type of data is often used in the field of occupational health and safety to look at entire industries or regions. Very little has been published in regards to occupational health and safety for brewing and greater understanding could allow for better safety and production outcomes for the industry as a whole.
 
-- Background
-- Identify research question(s)
-- State response and predictor variables
-- Identify each variable as continuous or categorical (with levels)
+For this project, the dataset was workers’ compensation data for all craft breweries in Colorado who held policy with a specific Colorado based insurance company between 2013 and 2018. There was a total of 975 observations encompassing a total of 130 breweries. Information on adjusted payroll (proxy for size of brewery), if a workers compensation claim was made, and year was available for each brewery. Researchers were interested in the relationship between brewery size and workers compensation claims. Is there an association between the size of the brewery and if a claim is filed (binary response) or the number of claims that are filed (continuous response)? The predictor variable was adjusted payroll (continuous) and the response variables were if a claim was filed (binary) or the number of claims (continuous). This question was of interested because of the current profile of brewery size. Most tend to be small operations, producing just a few thousand barrels each year, but some are extrememly large, producing hundreds of thousands of barrels. There are few breweries in the middle. As breweries grow, many things change: the number of employees, resources, automation, etc. These changes create a new environment and change the hazards associated with the job. Understanding the relationship between size and injuries could help to identify direction for future research in the brewing industry.
+
+
 - Identify observational/experimental units and number of observations
 - Further details of design (make sure to include how we processed the data here)
 
@@ -72,6 +72,8 @@ kable(sample_n(data_table, 10, replace = TRUE),
       align = "ccccc")
 
 ```
+
+For the summary statistics, breweries were categorized by size. Since there are no industry standards for size, they were divided by quartiles in the dataset. 
 
 ```{r Summary Statistics & Graphics}
 
@@ -222,6 +224,9 @@ citation("geepack")
 
 7. Brewers Association. (2019). State craft beer sales & production statistics, 2019. Retrieved from https://www.brewersassociation.org/statistics-and-data/state-craft-beer-stats/
 
+8. OSHA. (2019). Regional Emphasis Program for Beverage Manufacturing. Retrieved from https://www.osha.gov/sites/default/files/enforcement/directives/CPL_20-11_04-01.pdf
+
+9. Lavender, S. A., Marras, W. S., Ferguson, S. A., Splittstoesser, R. E., & Yang, G. (2012). Developing physical exposure-based back injury risk models applicable to manual handling jobs in distribution centers. Journal of occupational and environmental hygiene, 9(7), 450-459.
 
 
 # R code appendix
