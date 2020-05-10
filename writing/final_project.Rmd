@@ -20,11 +20,6 @@ The brewing industry has seen substantial growth in Colorado over the past sever
 
 For this project, the dataset was workers’ compensation data for all craft breweries in Colorado who held policy with a specific Colorado based insurance company between 2013 and 2018. There was a total of 975 observations encompassing a total of 130 breweries in the original dataset. The original dataset contained multiple observations per brewery per year if there were multiple claims. In order to condense the dataset, claims were totaled and adjusted payrolls were average by year for each brewery, leaving 495 observations and 130 breweries. Information on adjusted payroll (proxy for size of brewery), if a workers compensation claim was made, and year was available for each brewery. Researchers were interested in the relationship between brewery size and workers' compensation claims. Is there an association between the size of the brewery and if a claim is filed (binary response) or the number of claims that are filed (continuous response)? The predictor variable was adjusted payroll (continuous) and the response variables were if a claim was filed (binary) or the number of claims (continuous). This question was of interested because of the current profile of brewery size. Most tend to be small operations, producing just a few thousand barrels each year, but some are extrememly large, producing hundreds of thousands of barrels. There are few breweries in the middle. As breweries grow, many things change: the number of employees, resources, automation, etc. These changes create a new environment and change the hazards associated with the job. Understanding the relationship between size and injuries could help to identify direction for future research in the brewing industry.
 
-
-- Identify observational/experimental units and number of observations
-- Further details of design (make sure to include how we processed the data here)
-
-
 # Summary Statistics and/or Graphics
 
 ```{r Load & Clean Data, warning=FALSE, message=FALSE}
@@ -52,10 +47,6 @@ wc2 <- wc %>%
   rename(brewery = Policy_Dim_Key)
 ```
 
-```{r Summary of Data}
-summary(wc2)
-```
-
 ```{r Data Frame, warning=FALSE, message=FALSE}
 
 ## Adds a table to present in the report. 
@@ -72,9 +63,13 @@ kable(sample_n(data_table, 10, replace = TRUE),
 
 ```
 
+```{r Summary of Data}
+summary(wc2)
+```
+
 For the summary statistics, breweries were categorized by size. Since there are no industry standards for size, they were divided by quartiles in the dataset. Brewery sizes were small ($0 - $71370), mediume ($71371 - $143400), large ($143401 - $307722), and extra large ($307723 - inf).
 
-```{r Summary Statistics & Graphics, fig.height=3, fig.width=4}
+```{r Summary Statistics & Graphics 1, fig.height=2.5, fig.width=4}
 
 #payroll stats
 payroll_stats <- summary(wc2$avg_payroll)
@@ -98,7 +93,9 @@ SumStats2 <- size_categories %>%
 ggplot() +
   geom_col(data = SumStats, aes(size, y = prop_claim)) +
   labs(x = "Size of Brewery", y = "Proportions of Breweries With a Claim")
- 
+```
+
+```{r Summary Statistics & Graphics 2, fig.height=2.5, fig.width=4}
 ggplot() +
   geom_col(data = SumStats2, aes(size, y = avg_claims)) +
   labs(x = "Size of Brewery", y = "Average Number of Claims")
