@@ -18,14 +18,14 @@ knitr::opts_chunk$set(message = FALSE)
 
 The brewing industry has seen substantial growth in Colorado over the past several years, going from 126 craft breweries in 2011 to 425 in 2019. In 2019, the economic impact of the craft brewing industry was over $3 billion, ranking Colorado the highest per capita in the United States (Brewers Association, 2019). The growth of the brewing industry and its economic importance has prompted the recent creation of a regional emphasis program by Colorado OSHA in 2019. This program was created to help employers identify hazards, ensure OSHA compliance, and reduce risk through the implementation of controls (OSHA, 2019). In the regional emphasis program, confined space, falls, noise, repetitive motions, lifting, and chemical exposures are identified as some of the hazards in the industry. Specifically, craft breweries tend to be small operations that rely heavily on manual material handling which has been associated with low back injuries (Lavendar, 2012). Researchers in the occupational ergonomics and safety program at Colorado State University have also taken interest in the quickly evolving brewing industry. They want to understand how and why workers are injured in brewing and actions that can be taken to reduce risk. Workers' compensation data has been obtained from one of the largest providers in the state of Colorado to look at these research questions. This type of data is often used in the field of occupational health and safety to look at entire industries or regions. Very little has been published in regards to occupational health and safety for brewing and greater understanding could allow for better safety and production outcomes for the industry as a whole.
 
-For this project, the dataset was workers’ compensation data for all craft breweries in Colorado who held policy with a specific Colorado based insurance company between 2013 and 2018. There was a total of 975 observations encompassing a total of 130 breweries. Information on adjusted payroll (proxy for size of brewery), if a workers compensation claim was made, and year was available for each brewery. Researchers were interested in the relationship between brewery size and workers' compensation claims. Is there an association between the size of the brewery and if a claim is filed (binary response) or the number of claims that are filed (continuous response)? The predictor variable was adjusted payroll (continuous) and the response variables were if a claim was filed (binary) or the number of claims (continuous). This question was of interested because of the current profile of brewery size. Most tend to be small operations, producing just a few thousand barrels each year, but some are extrememly large, producing hundreds of thousands of barrels. There are few breweries in the middle. As breweries grow, many things change: the number of employees, resources, automation, etc. These changes create a new environment and change the hazards associated with the job. Understanding the relationship between size and injuries could help to identify direction for future research in the brewing industry.
+For this project, the dataset was workers’ compensation data for all craft breweries in Colorado who held policy with a specific Colorado based insurance company between 2013 and 2018. There was a total of 975 observations encompassing a total of 130 breweries in the original dataset. The original dataset contained multiple observations per brewery per year if there were multiple claims. In order to condense the dataset, claims were totaled and adjusted payrolls were average by year for each brewery, leaving 495 observations and 130 breweries. Information on adjusted payroll (proxy for size of brewery), if a workers compensation claim was made, and year was available for each brewery. Researchers were interested in the relationship between brewery size and workers' compensation claims. Is there an association between the size of the brewery and if a claim is filed (binary response) or the number of claims that are filed (continuous response)? The predictor variable was adjusted payroll (continuous) and the response variables were if a claim was filed (binary) or the number of claims (continuous). This question was of interested because of the current profile of brewery size. Most tend to be small operations, producing just a few thousand barrels each year, but some are extrememly large, producing hundreds of thousands of barrels. There are few breweries in the middle. As breweries grow, many things change: the number of employees, resources, automation, etc. These changes create a new environment and change the hazards associated with the job. Understanding the relationship between size and injuries could help to identify direction for future research in the brewing industry.
 
 
 - Identify observational/experimental units and number of observations
 - Further details of design (make sure to include how we processed the data here)
 
 
-# Summary statistics and/or graphics (4 pts - Kyle)
+# Summary Statistics and/or Graphics
 
 ```{r Load & Clean Data, warning=FALSE, message=FALSE}
 library(readr)
@@ -39,7 +39,6 @@ library(geepack)
 
 ## Reading in raw data
 wc <- read_csv("../data/craftbeer_wc.csv")
-
 
 ## Cleaning data, wc2 = final cleaned data frame to use for analysis
 wc2 <- wc %>% 
@@ -73,9 +72,9 @@ kable(sample_n(data_table, 10, replace = TRUE),
 
 ```
 
-For the summary statistics, breweries were categorized by size. Since there are no industry standards for size, they were divided by quartiles in the dataset. 
+For the summary statistics, breweries were categorized by size. Since there are no industry standards for size, they were divided by quartiles in the dataset. Brewery sizes were small ($0 - $71370), mediume ($71371 - $143400), large ($143401 - $307722), and extra large ($307723 - inf).
 
-```{r Summary Statistics & Graphics}
+```{r Summary Statistics & Graphics, fig.height=3, fig.width=4}
 
 #payroll stats
 payroll_stats <- summary(wc2$avg_payroll)
@@ -104,22 +103,16 @@ ggplot() +
   geom_col(data = SumStats2, aes(size, y = avg_claims)) +
   labs(x = "Size of Brewery", y = "Average Number of Claims")
 
-ggplot() +
-  geom_point(data = wc2, aes(x = avg_payroll, y = total_claims))
-
 SumStats3 <- wc2 %>% 
             group_by(year) %>%
-            summarise(n = n(),
-            Prop_Claim = sum(claim_filed)/n)
+            summarise(n_breweries = n(),
+            Prop_Claim = sum(claim_filed)/n_breweries)
 
-SumStats4 <- wc2 %>% 
-            group_by(year) %>%
-            summarise(n = n(),
-            avg_claims = mean(total_claims))
+SumStats3
 
 ```
 
-# Analysis (6 pts - Molly)
+# Analysis
 Two analyses were conducted (both using Generalized Estimating Equations) with the response being binary and continuous (count data).
  
 
@@ -144,36 +137,24 @@ Model2 <- geeglm(total_claims ~ avg_payroll, id = brewery,
                          corstr = "exchangeable", data = wc2)
 ```
 
-# Results and Conclusions (4 pts - Molly)
+# Results and Conclusions
 The average salary of a brewery worker in Colorado is $35,265 (ZipRecruiter, 2020) - therefore this was used to help interpret our analysis.
-
-LIST OF THINGS TO INCLUDE:
-
-- ANOVA style likelihood ratio tests and/or table of estimated coefficients (UNSURE IF WE CAN COMPUTE THESE)
-- Other results as appropriate (ex: pairwise comparisons for categorical predictor) (N/A)
-- Interpretation and discussion (even if nothing is "significant")
-- Respond to your research questions
 
 ## Binary Response with Repeated Measures (Model1)
 
 Based on Model1 (p = 0.039), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a multiplicative increase of 1.12 (12%) in the estimated odds of having (at least one) workers' compensation claim filed. The results we found were anticipated in that we assumed that as a craft brewery hires more staff and increases in size that there would also be an increase the odds of filing a workers' compensation claim (i.e. work-related injuries). Although part of the increase could be because smaller breweries may be less likely to file a workers' compensation claim. 
-
-
 
 *Model1 Coefficients Table:*
 ```{r SUMMARY Model1}
 # Summary Table of Model1
 summary(Model1) %>% 
   coefficients()
-
 ```
-
 
 *Model1 Odds Ratio:*
 ```{r OR Model1}
 # Model1 Odds Ratio
 format(exp(35265 * 3.21e-06), digits = 16)
-
 ```
 
 ## Count Response with Repeated Measures (Model2)
@@ -204,10 +185,8 @@ Overall, our results aligned with what we had predicted - larger breweries file 
 # References
 
 ```{r Citation Model1, include = FALSE}
-
 # References 
 citation("geepack")
-
 ```
 
 1. Højsgaard, S., Halekoh, U. & Yan J. (2006) The R Package geepack for Generalized Estimating Equations Journal of Statistical Software, 15, 2, pp1--11
