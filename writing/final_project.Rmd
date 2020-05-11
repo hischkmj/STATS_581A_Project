@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 ```
 
-# Introduction (4 pts - Kyle)
+# Introduction 
 
 The brewing industry has seen substantial growth in Colorado over the past several years, going from 126 craft breweries in 2011 to 425 in 2019. In 2019, the economic impact of the craft brewing industry was over $3 billion, ranking Colorado the highest per capita in the United States (Brewers Association, 2019). The growth of the brewing industry and its economic importance has prompted the recent creation of a regional emphasis program by Colorado OSHA in 2019. This program was created to help employers identify hazards, ensure OSHA compliance, and reduce risk through the implementation of controls (OSHA, 2019). In the regional emphasis program, confined space, falls, noise, repetitive motions, lifting, and chemical exposures are identified as some of the hazards in the industry. Specifically, craft breweries tend to be small operations that rely heavily on manual material handling which has been associated with low back injuries (Lavendar, 2012). Researchers in the occupational ergonomics and safety program at Colorado State University have also taken interest in the quickly evolving brewing industry. They want to understand how and why workers are injured in brewing and actions that can be taken to reduce risk. Workers' compensation data has been obtained from one of the largest providers in the state of Colorado to look at these research questions. This type of data is often used in the field of occupational health and safety to look at entire industries or regions. Very little has been published in regards to occupational health and safety for brewing and greater understanding could allow for better safety and production outcomes for the industry as a whole.
 
@@ -25,7 +25,7 @@ For this project, the dataset was workers’ compensation data for all craft bre
 - Further details of design (make sure to include how we processed the data here)
 
 
-# Summary statistics and/or graphics (4 pts - Kyle)
+# Summary statistics and/or graphics 
 
 ```{r Load & Clean Data, warning=FALSE, message=FALSE}
 library(readr)
@@ -75,7 +75,7 @@ kable(sample_n(data_table, 10, replace = TRUE),
 
 For the summary statistics, breweries were categorized by size. Since there are no industry standards for size, they were divided by quartiles in the dataset. 
 
-```{r Summary Statistics & Graphics}
+```{r Summary Statistics & Graphics, fig.height= 2, fig.width=4}
 
 #payroll stats
 payroll_stats <- summary(wc2$avg_payroll)
@@ -112,17 +112,19 @@ SumStats3 <- wc2 %>%
             summarise(n = n(),
             Prop_Claim = sum(claim_filed)/n)
 
+
 SumStats4 <- wc2 %>% 
             group_by(year) %>%
             summarise(n = n(),
             avg_claims = mean(total_claims))
 
+
+
 ```
 
-# Analysis (6 pts - Molly)
+# Analysis 
 Two analyses were conducted (both using Generalized Estimating Equations) with the response being binary and continuous (count data).
  
-
 ## Binary Response with Repeated Measures (Model1)
 
 Model1 analysis was done using R and the geepack package (Hojsgaard, Halekoh, & Yan 2006; Yan & Fine, 2004; Yan, 2002). Generalized Estimating Equations (GEE) was used to fit a model with the response being if a brewery filed a claim (1 = yes, 0 = no). Fixed effects include payroll (proxy for brewery size). Breweries were used as clusters and we assumed a exchangeable correlation structure.
@@ -144,19 +146,12 @@ Model2 <- geeglm(total_claims ~ avg_payroll, id = brewery,
                          corstr = "exchangeable", data = wc2)
 ```
 
-# Results and Conclusions (4 pts - Molly)
+# Results and Conclusions 
 The average salary of a brewery worker in Colorado is $35,265 (ZipRecruiter, 2020) - therefore this was used to help interpret our analysis.
-
-LIST OF THINGS TO INCLUDE:
-
-- ANOVA style likelihood ratio tests and/or table of estimated coefficients (UNSURE IF WE CAN COMPUTE THESE)
-- Other results as appropriate (ex: pairwise comparisons for categorical predictor) (N/A)
-- Interpretation and discussion (even if nothing is "significant")
-- Respond to your research questions
 
 ## Binary Response with Repeated Measures (Model1)
 
-Based on Model1 (p = 0.039), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a multiplicative increase of 1.12 (12%) in the estimated odds of having (at least one) workers' compensation claim filed. The results we found were anticipated in that we assumed that as a craft brewery hires more staff and increases in size that there would also be an increase the odds of filing a workers' compensation claim (i.e. work-related injuries). Although part of the increase could be because smaller breweries may be less likely to file a workers' compensation claim. 
+Based on Model1 (p = 0.039), we find evidence of a difference between the odds. A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a multiplicative increase of 1.12 (12%) in the estimated odds of having (at least one) workers' compensation claim filed. The results we found were anticipated in that we assumed that as a craft brewery hires more staff and increases in size that there would also be an increase the odds of filing a workers' compensation claim (i.e. work-related injuries). Although part of the increase could be because smaller breweries may be less likely to file a workers' compensation claim. 
 
 
 
@@ -178,7 +173,7 @@ format(exp(35265 * 3.21e-06), digits = 16)
 
 ## Count Response with Repeated Measures (Model2)
 
-Based on Model2 (p = 0.0157), we find evidence of a difference between the odds (*KYLE CHECK*). A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a *multiplicative* increase of 1.004 (0.4%) in the predicted number of workers' compensation claims filed. 
+Based on Model2 (p = 0.0157), we find evidence of a difference between the odds. A $35,265 increase (hiring approximately one worker) in average yearly payroll is associated with a *multiplicative* increase of 1.004 (0.4%) in the predicted number of workers' compensation claims filed. 
 
 However, these results may underestimate the increase in the number of workers' compensation claims filed with an increase in brewery size. The National Brewers Association found that 17.8% of brewery employees who experienced an injury at work did not report it. Furthermore, 20% of those who reported an injury stated their injury was not documented by the organization (Embry & Stinchfield, 2020). Especially for smaller breweries with less employees, the organizations might not even know they need to report serious injuries (Pell, 2013). 
 
